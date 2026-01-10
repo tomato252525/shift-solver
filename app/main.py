@@ -104,9 +104,14 @@ def validate_day_rows(rows: List[Dict[str, Any]]) -> None:
 def fetch_requests_for_day(week_start_date: str, day: str) -> List[Dict[str, Any]]:
     res = (
         sb.table("shift_requests")
-        .select("id,user_id,week_start_date,date,start_time,end_time,is_available,exit_by_end_time")
+        .select("""
+            id, user_id, week_start_date, date, start_time, end_time, is_available, exit_by_end_time,
+            users!inner(role, is_active)
+        """)
         .eq("week_start_date", week_start_date)
         .eq("date", day)
+        .eq("users.role", "cast")     # role が cast
+        .eq("users.is_active", True)  # is_active が true
         .execute()
     )
     return res.data or []
@@ -114,8 +119,13 @@ def fetch_requests_for_day(week_start_date: str, day: str) -> List[Dict[str, Any
 def fetch_requests_for_week(week_start_date: str) -> List[Dict[str, Any]]:
     res = (
         sb.table("shift_requests")
-        .select("id,user_id,week_start_date,date,start_time,end_time,is_available,exit_by_end_time")
+        .select("""
+            id, user_id, week_start_date, date, start_time, end_time, is_available, exit_by_end_time,
+            users!inner(role, is_active)
+        """)
         .eq("week_start_date", week_start_date)
+        .eq("users.role", "cast")
+        .eq("users.is_active", True)
         .execute()
     )
     return res.data or []
