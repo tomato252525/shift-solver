@@ -258,12 +258,14 @@ def job_solve_day(req: SolveDayJobRequest):
     """
     try:
         rows = fetch_requests_for_day(req.week_start_date, req.date)
+
+        delete_assignments_for_day(req.week_start_date, req.date)
+        
         if not rows:
             return JobResponse(ok=True, status="NO_DATA", saved_count=0, details={"date": req.date})
 
         status, assignments = solve_one_day(rows, req.K, req.objective_mode, TIME_LIMIT_MANUAL_SEC)
 
-        delete_assignments_for_day(req.week_start_date, req.date)
         saved = insert_assignments(assignments, req.K, req.objective_mode, generated_by="manual_day")
 
         return JobResponse(ok=True, status=status, saved_count=saved,
@@ -281,13 +283,14 @@ def job_solve_week(req: SolveWeekJobRequest):
     """
     try:
         week_rows = fetch_requests_for_week(req.week_start_date)
+
+        delete_assignments_for_week(req.week_start_date)
+        
         if not week_rows:
             return JobResponse(ok=True, status="NO_DATA", saved_count=0, details={"week_start_date": req.week_start_date})
 
         ws = date.fromisoformat(req.week_start_date)
         days = [(ws + timedelta(days=i)).isoformat() for i in range(7)]
-
-        delete_assignments_for_week(req.week_start_date)
 
         saved_total = 0
         day_statuses: Dict[str, str] = {}
