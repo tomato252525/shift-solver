@@ -196,7 +196,7 @@ def solve_one_day(rows: List[Dict[str, Any]], K: int, objective_mode: str, time_
         model.AddNoOverlap(intervals_in_room[j])
 
     if objective_mode == "maximize_count":
-        model.Maximize(sum(x))
+        model.Maximize(sum(x[i] * 1000 + durations[i] for i in range(len(x))))
     else:
         model.Maximize(sum(x[i] * durations[i] for i in range(len(x))))
 
