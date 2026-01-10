@@ -111,7 +111,7 @@ def fetch_requests_for_day(week_start_date: str, day: str) -> List[Dict[str, Any
         .eq("week_start_date", week_start_date)
         .eq("date", day)
         .eq("users.role", "cast")
-        .eq("users.is_active", True)
+        .eq("users.is_active", "true")
         .execute()
     )
     return res.data or []
@@ -125,7 +125,7 @@ def fetch_requests_for_week(week_start_date: str) -> List[Dict[str, Any]]:
         """)
         .eq("week_start_date", week_start_date)
         .eq("users.role", "cast")
-        .eq("users.is_active", True)
+        .eq("users.is_active", "true")
         .execute()
     )
     return res.data or []
@@ -241,7 +241,7 @@ def solve_one_day(rows: List[Dict[str, Any]], K: int, objective_mode: str, time_
                     "room_no": room_no,
                     "start_time": normalize_time_str(r["start_time"]),
                     "end_time": normalize_time_str(r["end_time"]),
-                    "exit_by_end_time": r.get("exit_by_end_time"),  # ★追加
+                    "exit_by_end_time": r.get("exit_by_end_time"),
                 })
 
     return status_str, assignments
