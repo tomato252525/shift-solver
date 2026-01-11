@@ -199,10 +199,16 @@ def solve_one_day(rows: List[Dict[str, Any]], K: int, objective_mode: str, time_
     for j in range(K):
         model.AddNoOverlap(intervals_in_room[j])
 
+    # 10:00-24:00運用（5分単位）
+    DAY_START = "10:00"
+    DAY_END = "24:00"
+    max_total_dur = K * (hhmm_to_5min_index(DAY_END) - hhmm_to_5min_index(DAY_START))  # K*168
+    M = max_total_dur + 1
+    
     if objective_mode == "maximize_count":
-        model.Maximize(sum(x[i] * 1000 + durations[i] for i in range(len(x))))
+        model.Maximize(M * sum(x) + sum(durations[i] * x[i] for i in range(len(x))))
     else:
-        model.Maximize(sum(x[i] * durations[i] for i in range(len(x))))
+        model.Maximize(sum(durations[i] * x[i] for i in range(len(x))))
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = float(time_limit_sec)
