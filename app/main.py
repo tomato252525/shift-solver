@@ -203,12 +203,30 @@ def solve_one_day(rows: List[Dict[str, Any]], K: int, objective_mode: str, time_
     DAY_START = "10:00"
     DAY_END = "24:00"
     max_total_dur = K * (hhmm_to_5min_index(DAY_END) - hhmm_to_5min_index(DAY_START))  # K*168
-    M = max_total_dur + 1
-    
+
+    # exit_by_end_time=false を優先するためのスコア（false=1, true/None=0）
+    prefers = []
+    for (r, s, e, dur) in candidates:
+        ebe = r.get("exit_by_end_time")
+        prefers.append(1 if ebe is False else 0)
+
+    # 重み設計： minutes が preference より必ず優先、count が minutes+preference より必ず優先
+    max_pref = len(candidates)  # preference の最大合計（全員採用で最大）
+    W_PREF = 1
+    W_MINUTES = max_pref + 1  # minutesの1増分が preference 全増分より強い
+    W_COUNT = max_total_dur * W_MINUTES + max_pref + 1  # countの1増分が minutes+preference 全増分より強い
+
     if objective_mode == "maximize_count":
-        model.Maximize(M * sum(x) + sum(durations[i] * x[i] for i in range(len(x))))
-    else:
-        model.Maximize(sum(durations[i] * x[i] for i in range(len(x))))
+        model.Maximize(
+            W_COUNT * sum(x)
+            + W_MINUTES * sum(durations[i] * x[i] for i in range(len(x)))
+            + W_PREF * sum(prefers[i] * x[i] for i in range(len(x)))
+        )
+    else:  # maximize_minutes
+        model.Maximize(
+            W_MINUTES * sum(durations[i] * x[i] for i in range(len(x)))
+            + W_PREF * sum(prefers[i] * x[i] for i in range(len(x)))
+        )
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = float(time_limit_sec)
